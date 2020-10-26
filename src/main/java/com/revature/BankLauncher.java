@@ -5,6 +5,8 @@ import com.revature.service.BankService;
 public class BankLauncher {
 
     public static void main(String[] args) {
-        BankService.loginScreen();
+        while(true) {
+            BankService.dashboard();
+        }
     }
 }
