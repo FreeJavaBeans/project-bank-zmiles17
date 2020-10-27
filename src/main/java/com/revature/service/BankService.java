@@ -13,7 +13,7 @@ public class BankService {
 
     private static User user;
 
-    public static void createOrFindUser(String option) {
+    private static void createOrFindUser(String option) {
         System.out.print("Please enter your username: ");
         String username = sc.next().trim();
         System.out.print("Enter your password: ");
@@ -27,7 +27,7 @@ public class BankService {
     }
 
     public static void dashboard() {
-        System.out.print("Enter 1 if you are a registered User or Customer or press 2 to register for an account: ");
+        System.out.print("Enter 1 if you are a registered user or press 2 to register: ");
         int val;
         try {
             val = sc.nextInt();
@@ -51,20 +51,24 @@ public class BankService {
         }
     }
 
-    public static void userMenu() {
-        System.out.print("Greetings " + user.getUsername() + "! Would you like to register yourself as a customer? Y/N ");
+    private static void userMenu() {
+        System.out.print("Greetings " + user.getUsername() + "! Press Y to register as a customer or N to logout. Y/N ");
         String input = sc.next();
         if(input.equals("Y")) {
-            user = new Customer(user.getUsername(), user.getPassword());
+            Customer customer = new Customer(user.getUsername(), user.getPassword());
+            user = customer;
             customerMenu();
-        } else {
+        } else if(input.equals("N")){
             System.out.println("You are being logged out.");
             user = null;
             dashboard();
+        } else {
+            System.out.println("That is not a valid option");
+            userMenu();
         }
     }
 
-    public static void customerMenu() {
+    private static void customerMenu() {
         StringBuilder sb = new StringBuilder();
         System.out.println("Greetings valued customer! Here is your list of options: ");
         sb.append("1: Apply for a new bank account \n2: View my account balance \n3: Make a deposit or withdrawal \n");
@@ -72,18 +76,46 @@ public class BankService {
         System.out.println(sb.toString());
         try {
             int option = sc.nextInt();
-            System.out.println("You have chosen option " + option);
+            customerMenuSelection(option);
         } catch (InputMismatchException e) {
             System.out.println("Sorry that is not a valid option.");
             customerMenu();
         }
     }
 
-    public static void employeeMenu() {
+    private static void employeeMenu() {
 
     }
 
-    public static void systemMenu() {
+    private static void systemMenu() {
 
     }
+
+    private static void customerMenuSelection(int option) {
+        switch(option) {
+            case 1:
+                System.out.println("Option 1 Chosen");
+                break;
+            case 2:
+                System.out.println("Option 2 chosen");
+                break;
+            case 3:
+                System.out.println("Option 3");
+                break;
+            case 4:
+                System.out.println("Option 4");
+                break;
+            case 5:
+                System.out.println("Option 5");
+                break;
+            case 6:
+                System.out.println("You have chosen to exit");
+                break;
+            default:
+                System.out.println("Sorry that was not a valid option");
+                break;
+        }
+    }
+
+
 }

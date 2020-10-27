@@ -8,9 +8,17 @@ public class Customer extends User {
         super(username, password);
     }
 
-    private void applyForBankAccount(double balance) {
+    public Account getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(Account bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    private void applyForBankAccount(Customer customer, double balance) {
         if(this.bankAccount != null) {
-            this.bankAccount = Employee.verifyAccount(balance);
+            this.bankAccount = Employee.applyForAccount(customer, balance);
         } else {
             System.out.println("You already have a bank account. We only allow one bank account per customer.");
         }
