@@ -1,23 +1,31 @@
 package com.revature.model;
 
 public class Account {
-
-    private Customer customer;
+    private int accountId;
+    private int customerId;
     private double balance;
     private boolean isVerified;
 
-    public Account(Customer customer, double balance) {
-        this.customer = customer;
+    public Account(int customerId, double balance) {
+        this.customerId = customerId;
         this.balance = balance;
         this.isVerified = false;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public int getAccountId() {
+        return accountId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public double getBalance() {

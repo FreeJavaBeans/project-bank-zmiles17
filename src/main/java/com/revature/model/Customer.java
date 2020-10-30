@@ -1,34 +1,37 @@
 package com.revature.model;
 
+import java.lang.System;
+
 public class Customer extends User {
 
-    private Account bankAccount;
+    private int customerId;
+    private int accountId;
 
     public Customer(String username, String password) {
         super(username, password);
     }
 
-    public Account getBankAccount() {
-        return bankAccount;
+    public int getAccountId() {
+        return accountId;
     }
 
-    public void setBankAccount(Account bankAccount) {
-        this.bankAccount = bankAccount;
+    public void setAccountId(int accountId) {
+        this.accountId = accountId;
     }
 
-    private void applyForBankAccount(Customer customer, double balance) {
-        if(this.bankAccount != null) {
-            this.bankAccount = Employee.applyForAccount(customer, balance);
-        } else {
+    private void applyForBankAccount(int customerId, double balance) {
+        if(this.accountId > 0) {
             System.out.println("You already have a bank account. We only allow one bank account per customer.");
+        } else {
+            this.accountId = Employee.applyForAccount(customerId, balance);
         }
     }
 
     private String viewBalance() {
         StringBuilder sb = new StringBuilder();
-        if(bankAccount != null) {
+        if(accountId > 0) {
             sb.append("$");
-            sb.append(bankAccount.getBalance());
+//          need to query database for account balance
         } else {
             sb.append("You do not have an account. Please apply for a bank account to view your balance.");
         }

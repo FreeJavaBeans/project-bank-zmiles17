@@ -3,7 +3,9 @@ package com.revature.service;
 import com.revature.model.Employee;
 import com.revature.model.User;
 import com.revature.model.Customer;
+import com.revature.util.ConnectionUtil;
 
+import java.sql.Connection;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -11,43 +13,58 @@ public class BankService {
 
     private static Scanner sc = new Scanner(System.in);
 
+    private static ConnectionUtil connectionUtil = ConnectionUtil.getSingleton();
+
     private static User user;
 
-    private static void createOrFindUser(String option) {
+    private static void createUser() {
+        Connection connection = connectionUtil.getConnection();
         System.out.print("Please enter your username: ");
         String username = sc.next().trim();
         System.out.print("Enter your password: ");
         String password = sc.next().trim();
-//        System.out.println("username: " + username + "\npassword: " + password);
 
-        // This needs to be refactored to persist or retrieve data
+
         user = new User(username, password);
 
 
     }
 
+    private static void findUser() {
+
+    }
+
     public static void dashboard() {
+
         System.out.print("Enter 1 if you are a registered user or press 2 to register: ");
         int val;
         try {
             val = sc.nextInt();
             if(val == 1) {
-                createOrFindUser("Login");
+                createUser();
             } else if(val == 2) {
-                createOrFindUser("Register");
+                findUser();
+            } else {
+                System.out.println("That was not a valid option.");
             }
         } catch (InputMismatchException e) {
             sc.next();
             System.out.println("That was an invalid input please try again.");
-            dashboard();
+        } finally {
+            chooseMenu();
         }
 
+    }
+
+    private static void chooseMenu() {
         if(user instanceof Customer) {
             customerMenu();
         } else if(user instanceof Employee) {
             employeeMenu();
-        } else {
+        } else if(user instanceof User){
             userMenu();
+        } else {
+            dashboard();
         }
     }
 

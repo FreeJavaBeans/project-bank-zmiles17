@@ -2,6 +2,7 @@ package com.revature.model;
 
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.lang.System;
 
 public class Employee extends User {
 
@@ -11,11 +12,11 @@ public class Employee extends User {
         super(username, password);
     }
 
-    public static Account applyForAccount(Customer customer, double balance) {
-        Account acc = new Account(customer, balance);
+    public static int applyForAccount(int customerId, double balance) {
+        Account acc = new Account(customerId, balance);
         accountsToVerify.add(acc);
         System.out.println("You have successfully applied for a bank account. You will be able to access your account once an employee verifies it");
-        return acc;
+        return acc.getAccountId();
     }
 
     public static void verifyBankAccount() {

@@ -7,6 +7,15 @@
     <groupId>project-bank-zmiles17</groupId>
     <artifactId>project-bank-zmiles17</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.18</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
