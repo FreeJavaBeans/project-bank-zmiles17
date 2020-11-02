@@ -4,11 +4,15 @@ import java.lang.System;
 
 public class Customer extends User {
 
-    private int customerId;
     private int accountId;
 
-    public Customer(String username, String password) {
-        super(username, password);
+    public Customer() {
+        super();
+    }
+
+    public Customer(String username, int accountId) {
+        super(username);
+        this.accountId = accountId;
     }
 
     public int getAccountId() {
@@ -19,11 +23,11 @@ public class Customer extends User {
         this.accountId = accountId;
     }
 
-    private void applyForBankAccount(int customerId, double balance) {
+    private void applyForBankAccount(double balance) {
         if(this.accountId > 0) {
             System.out.println("You already have a bank account. We only allow one bank account per customer.");
         } else {
-            this.accountId = Employee.applyForAccount(customerId, balance);
+            this.accountId = Employee.applyForAccount(balance);
         }
     }
 

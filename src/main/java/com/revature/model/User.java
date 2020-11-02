@@ -3,8 +3,18 @@ package com.revature.model;
 import java.util.Objects;
 
 public class User {
+    private int userId;
     private String username;
     private String password;
+
+    public User() {
+        super();
+    }
+
+    public User(int userId, String username) {
+        this.userId = userId;
+        this.username = username;
+    }
 
     public User(String username, String password) {
         this.username = username;
@@ -13,6 +23,14 @@ public class User {
 
     public User(String username) {
         this.username = username;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {

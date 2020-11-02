@@ -12,17 +12,18 @@ public class Employee extends User {
         super(username, password);
     }
 
-    public static int applyForAccount(int customerId, double balance) {
-        Account acc = new Account(customerId, balance);
-        accountsToVerify.add(acc);
-        System.out.println("You have successfully applied for a bank account. You will be able to access your account once an employee verifies it");
-        return acc.getAccountId();
+    public static int applyForAccount(double balance) {
+        // Account needs to be added to database first
+//        accountsToVerify.add(acc);
+//        System.out.println("You have successfully applied for a bank account. You will be able to access your account once an employee verifies it");
+//        return acc.getAccountId();
+        return 0;
     }
 
     public static void verifyBankAccount() {
         Account toVerify = accountsToVerify.remove();
         double balance = toVerify.getBalance();
-        if(balance > 100 && balance < 100000) {
+        if(balance > 100 && balance < 10e7) {
             toVerify.setVerified(true);
             System.out.println("Bank account approved");
         } else {

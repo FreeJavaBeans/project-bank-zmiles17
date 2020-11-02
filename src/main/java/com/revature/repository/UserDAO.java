@@ -18,12 +18,12 @@ public class UserDAO implements UserRepository {
     public User createUser(String username, String password) {
         Connection connection = connectionUtil.getConnection();
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement("insert into Bank.\"user\" (username, password) values (?, ?) returning username");
+            PreparedStatement preparedStatement = connection.prepareStatement("insert into bank.user (username, password) values (?, ?) returning user_id, username");
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
             ResultSet results = preparedStatement.executeQuery();
             if(results.next()) {
-                return new User(results.getString("username"));
+                return new User(results.getInt("user_id"), results.getString("username"));
             }
         } catch(SQLException e) {
             System.out.println("Error occurred while trying to create a new user");
