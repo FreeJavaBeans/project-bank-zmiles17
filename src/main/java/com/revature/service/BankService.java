@@ -3,6 +3,7 @@ package com.revature.service;
 import com.revature.model.Employee;
 import com.revature.model.User;
 import com.revature.model.Customer;
+import com.revature.repository.UserDAO;
 import com.revature.util.ConnectionUtil;
 
 import java.sql.Connection;
@@ -17,6 +18,8 @@ public class BankService {
 
     private static User user;
 
+    private static UserDAO userDAO = new UserDAO();
+
     private static void createUser() {
         Connection connection = connectionUtil.getConnection();
         System.out.print("Please enter your username: ");
@@ -25,7 +28,8 @@ public class BankService {
         String password = sc.next().trim();
 
 
-        user = new User(username, password);
+        user = userDAO.createUser(username, password);
+        System.out.println(user.getUsername());
 
 
     }
@@ -41,17 +45,15 @@ public class BankService {
         try {
             val = sc.nextInt();
             if(val == 1) {
-                createUser();
-            } else if(val == 2) {
                 findUser();
+            } else if(val == 2) {
+                createUser();
             } else {
                 System.out.println("That was not a valid option.");
             }
         } catch (InputMismatchException e) {
             sc.next();
             System.out.println("That was an invalid input please try again.");
-        } finally {
-            chooseMenu();
         }
 
     }

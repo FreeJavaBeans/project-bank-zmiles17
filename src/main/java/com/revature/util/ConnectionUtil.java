@@ -16,7 +16,7 @@ public class ConnectionUtil {
         String password = System.getenv("DB_PASSWORD");
         String url = System.getenv("DB_URL");
         try {
-            DriverManager.getConnection(url, username, password);
+            this.connection = DriverManager.getConnection(url, username, password);
         } catch(SQLException e) {
             e.printStackTrace();
         }

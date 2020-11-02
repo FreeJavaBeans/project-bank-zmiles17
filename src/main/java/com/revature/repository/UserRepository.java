@@ -4,9 +4,9 @@ import com.revature.model.User;
 
 public interface UserRepository {
 
-    public User createUser(User user);
+    public User createUser(String username, String password);
 
-    public User findUser(String username, String password);
+    public User findUserByUsername(String username);
 
 
 }
