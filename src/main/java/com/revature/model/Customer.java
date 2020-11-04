@@ -15,6 +15,11 @@ public class Customer extends User {
         this.accountId = accountId;
     }
 
+    public Customer(int userId, String username, int accountId) {
+        super(userId, username);
+        this.accountId = accountId;
+    }
+
     public int getAccountId() {
         return accountId;
     }

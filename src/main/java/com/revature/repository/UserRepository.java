@@ -8,5 +8,5 @@ public interface UserRepository {
 
     public User findUserByUsername(String username);
 
-
+    public User findUserByUsernameAndPassword(String username, String password);
 }

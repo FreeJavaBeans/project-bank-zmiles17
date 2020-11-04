@@ -30,4 +30,20 @@ public class CustomerDAO implements CustomerRepository {
         }
         throw new CustomerCreationException("Customer was not created successfully");
     }
+
+    @Override
+    public Customer findCustomerByUserId(User user) {
+        Connection conn = util.getConnection();
+        try {
+            PreparedStatement prep = conn.prepareStatement("select account_id from customer where user_id = ?;");
+            prep.setInt(1, user.getUserId());
+            ResultSet results = prep.executeQuery();
+            if(results.next()) {
+                return new Customer(user.getUserId(), user.getUsername(), results.getInt("account_id"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        throw new RuntimeException("Error finding customer by user id.");
+    }
 }

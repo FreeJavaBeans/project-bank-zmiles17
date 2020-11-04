@@ -6,5 +6,7 @@ public interface AccountRepository {
 
     public Account createAccount(double balance);
 
-    public double getBalanceById(int accountId);
+    public Account getAccountById(int accountId);
+
+    public Account updateBalance(double amount, int accountId);
 }

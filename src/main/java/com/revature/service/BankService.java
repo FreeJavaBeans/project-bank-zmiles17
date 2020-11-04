@@ -20,6 +20,12 @@ public class BankService {
 
     private static User user;
 
+    private static Customer customer;
+
+    private static Employee employee;
+
+    private static System system;
+
     private static final UserDAO userDAO = new UserDAO();
 
     private static final CustomerDAO customerDAO = new CustomerDAO();
@@ -32,11 +38,14 @@ public class BankService {
         System.out.print("Enter your password: ");
         String password = sc.next().trim();
         user = userDAO.createUser(username, password);
-        System.out.println(user.getUsername());
     }
 
-    private static void findUser() {
-
+    private static void loginUser() {
+        System.out.print("Please enter your username: ");
+        String username = sc.next().trim();
+        System.out.print("Enter your password: ");
+        String password = sc.next().trim();
+        user = userDAO.findUserByUsernameAndPassword(username, password);
     }
 
     public static void dashboard() {
@@ -45,7 +54,7 @@ public class BankService {
         try {
             val = sc.nextInt();
             if(val == 1) {
-                findUser();
+                loginUser();
             } else if(val == 2) {
                 createUser();
             } else {
@@ -59,9 +68,9 @@ public class BankService {
     }
 
     private static void chooseMenu() {
-        if(user instanceof Customer) {
+        if(customer != null) {
             customerMenu();
-        } else if(user instanceof Employee) {
+        } else if(employee != null) {
             employeeMenu();
         } else if(user != null){
             userMenu();
@@ -71,16 +80,15 @@ public class BankService {
     }
 
     private static void userMenu() {
-        System.out.print("Greetings " + user.getUsername() + "! Press Y to apply for a bank account or N to exit. Y/N ");
-        String input = sc.next();
-        if(input.equals("Y")) {
+        System.out.print("Greetings " + user.getUsername() + "! Press 1 to apply for a new bank account or 2 if you already have an account: ");
+        int input = sc.nextInt();
+        if(input == 1) {
             int accountId = applyForAccount();
-            user = customerDAO.createCustomer(user, accountId);
+            customer = customerDAO.createCustomer(user, accountId);
             customerMenu();
-        } else if(input.equals("N")){
-            System.out.println("You are being logged out.");
-            user = null;
-            dashboard();
+        } else if(input == 2){
+            customer = customerDAO.findCustomerByUserId(user);
+            customerMenu();
         } else {
             System.out.println("That is not a valid option");
             userMenu();
@@ -89,7 +97,7 @@ public class BankService {
 
     private static void customerMenu() {
         StringBuilder sb = new StringBuilder();
-        System.out.println("Greetings valued customer! Here is your list of options: ");
+        System.out.println("Here is your list of options: ");
         sb.append("1: View my account balance \n2: Make a deposit or withdrawal \n");
         sb.append("3: Transfer money to another account \n4: Accept money from another account \n5: Exit");
         System.out.println(sb.toString());
@@ -111,25 +119,39 @@ public class BankService {
     }
 
     private static void customerMenuSelection(int option) {
-        switch(option) {
-            case 1:
-                System.out.println("Option 1");
-                break;
-            case 2:
-                System.out.println("Option 2");
-                break;
-            case 3:
-                System.out.println("Option 3");
-                break;
-            case 4:
-                System.out.println("Option 4");
-                break;
-            case 5:
-                System.out.println("You have chosen to exit");
-                break;
-            default:
-                System.out.println("Sorry that was not a valid option");
-                break;
+        boolean viewingMenu = true;
+        Account account = accountDAO.getAccountById(customer.getAccountId());
+        while(viewingMenu) {
+            switch(option) {
+                case 1:
+                    account = accountDAO.getAccountById(customer.getAccountId());
+                    System.out.println("Your current balance is $" + account.getBalance());
+                    break;
+                case 2:
+                    System.out.print("Enter the amount you wish to deposit or withdraw for example use (-) to withdraw: ");
+                    double amount = sc.nextDouble();
+                    account = accountDAO.updateBalance(account.getBalance() + amount, account.getAccountId());
+                    System.out.println(account.getBalance());
+                    break;
+                case 3:
+                    //transfer money to different account
+                    System.out.println("Option 3");
+                    break;
+                case 4:
+                    //accept transfer
+                    System.out.println("Option 4");
+                    break;
+                case 5:
+                    System.out.println("You have chosen to exit");
+                    customer = null;
+                    account = null;
+                    user = null;
+                    viewingMenu = false;
+                    break;
+                default:
+                    System.out.println("Sorry that was not a valid option");
+                    break;
+            }
         }
     }
 
@@ -137,13 +159,14 @@ public class BankService {
         System.out.println("Please enter a dollar amount for your account's beginning balance. Must be greater than 100.00 and less than 10 million. Ex: 5761.28");
         Account account = null;
         try {
-            BigDecimal bd = new BigDecimal(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP);
+            BigDecimal bd = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP);
             double beginningBalance = bd.doubleValue();
             System.out.println(beginningBalance);
             account = accountDAO.createAccount(beginningBalance);
         } catch (InputMismatchException e) {
             e.printStackTrace();
         }
+        assert account != null;
         return account.getAccountId();
     }
 
