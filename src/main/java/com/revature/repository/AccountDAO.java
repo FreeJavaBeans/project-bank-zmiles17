@@ -56,7 +56,7 @@ public class AccountDAO implements AccountRepository {
             prep.setInt(2, accountId);
             ResultSet results = prep.executeQuery();
             if(results.next()) {
-                BigDecimal bd = new BigDecimal(results.getDouble("balance")).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal bd = BigDecimal.valueOf(results.getDouble("balance")).setScale(2, RoundingMode.HALF_UP);
                 return new Account(accountId, bd.doubleValue() , results.getBoolean("is_verified"));
             }
         } catch(SQLException e) {

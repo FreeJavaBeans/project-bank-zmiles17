@@ -119,44 +119,62 @@ public class BankService {
     }
 
     private static void customerMenuSelection(int option) {
-        boolean viewingMenu = true;
         Account account = accountDAO.getAccountById(customer.getAccountId());
-        while(viewingMenu) {
-            switch(option) {
-                case 1:
-                    account = accountDAO.getAccountById(customer.getAccountId());
-                    System.out.println("Your current balance is $" + account.getBalance());
-                    break;
-                case 2:
-                    System.out.print("Enter the amount you wish to deposit or withdraw for example use (-) to withdraw: ");
-                    double amount = sc.nextDouble();
-                    account = accountDAO.updateBalance(account.getBalance() + amount, account.getAccountId());
-                    System.out.println(account.getBalance());
-                    break;
-                case 3:
-                    //transfer money to different account
-                    System.out.println("Option 3");
-                    break;
-                case 4:
-                    //accept transfer
-                    System.out.println("Option 4");
-                    break;
-                case 5:
-                    System.out.println("You have chosen to exit");
-                    customer = null;
-                    account = null;
-                    user = null;
-                    viewingMenu = false;
-                    break;
-                default:
-                    System.out.println("Sorry that was not a valid option");
-                    break;
-            }
+        switch(option) {
+            case 1:
+                account = accountDAO.getAccountById(customer.getAccountId());
+                System.out.println("Your current balance is $" + account.getBalance());
+                break;
+            case 2:
+                System.out.print("Press W to withdraw or D to deposit (W/D): ");
+                String input = sc.next();
+                double amount;
+                if(input.equals("W")) {
+                    System.out.printf("Enter the amount you would like to withdraw from $%s: ",
+                            BigDecimal.valueOf(account.getBalance()).setScale(2, RoundingMode.HALF_UP));
+                    amount = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+                    if(account.getBalance() - amount >= 0 && amount > 0) {
+                        account = accountDAO.updateBalance(account.getBalance() - amount, account.getAccountId());
+                    } else {
+                        System.out.printf("Sorry that is an invalid amount to withdraw given your funds of $%s",
+                                BigDecimal.valueOf(account.getBalance()).setScale(2, RoundingMode.HALF_UP));
+                    }
+                } else if(input.equals("D")) {
+                    System.out.print("Enter the amount you would like to deposit: ");
+                    amount = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP).doubleValue();
+                    if(amount > 0) {
+                        account = accountDAO.updateBalance(account.getBalance() + amount, account.getAccountId());
+                    } else {
+                        System.out.println("You cannot deposit anything less than or equal to $0.00");
+                    }
+                } else {
+                    System.out.println("That was not a valid option. Taking you back to the customer menu.");
+                }
+                break;
+            case 3:
+                //transfer money to different account
+                System.out.println("Option 3");
+                break;
+            case 4:
+                //accept transfer
+                System.out.println("Option 4");
+                break;
+            case 5:
+                System.out.println("You have chosen to exit");
+                customer = null;
+                account = null;
+                user = null;
+                break;
+            default:
+                System.out.println("Sorry that was not a valid option");
+                break;
         }
+        customerMenu();
     }
 
     private static int applyForAccount() throws AccountCreationException {
-        System.out.println("Please enter a dollar amount for your account's beginning balance. Must be greater than 100.00 and less than 10 million. Ex: 5761.28");
+        System.out.println("Please enter a dollar amount for your account's beginning balance. " +
+                "Must be greater than 100.00 and less than 10 million. Ex: 5761.28");
         Account account = null;
         try {
             BigDecimal bd = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP);
