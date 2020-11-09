@@ -7,6 +7,7 @@ import com.revature.model.User;
 import com.revature.model.Customer;
 import com.revature.repository.AccountDAO;
 import com.revature.repository.CustomerDAO;
+import com.revature.repository.EmployeeDAO;
 import com.revature.repository.UserDAO;
 
 import java.math.BigDecimal;
@@ -24,13 +25,20 @@ public class BankService {
 
     private static Employee employee;
 
-    private static System system;
-
     private static final UserDAO userDAO = new UserDAO();
 
     private static final CustomerDAO customerDAO = new CustomerDAO();
 
     private static final AccountDAO accountDAO = new AccountDAO();
+
+    private static final EmployeeDAO employeeDAO = new EmployeeDAO();
+
+    private static void resetService() {
+        user = null;
+        customer = null;
+        employee = null;
+        dashboard();
+    }
 
     private static void createUser() {
         System.out.print("Please enter your username: ");
@@ -48,8 +56,16 @@ public class BankService {
         user = userDAO.findUserByUsernameAndPassword(username, password);
     }
 
+    private static void loginEmployee() {
+        System.out.print("Enter your employee username: ");
+        String username = sc.next();
+        System.out.print("Enter your password: ");
+        String password = sc.next();
+        employee = employeeDAO.findEmployeeByUsernameAndPassword(username, password);
+    }
+
     public static void dashboard() {
-        System.out.print("Enter 1 if you are a registered user or press 2 to register: ");
+        System.out.print("Enter 1 if you are a registered user, 2 to register, or 3 if you are an employee: ");
         int val;
         try {
             val = sc.nextInt();
@@ -57,6 +73,8 @@ public class BankService {
                 loginUser();
             } else if(val == 2) {
                 createUser();
+            } else if(val == 3) {
+                loginEmployee();
             } else {
                 System.out.println("That was not a valid option.");
             }
@@ -90,8 +108,8 @@ public class BankService {
             customer = customerDAO.findCustomerByUserId(user);
             customerMenu();
         } else {
-            System.out.println("That is not a valid option");
-            userMenu();
+            System.out.println("That is not a valid option. Taking you back to login.");
+            resetService();
         }
     }
 
@@ -152,8 +170,17 @@ public class BankService {
                 }
                 break;
             case 3:
-                //transfer money to different account
-                System.out.println("Option 3");
+                System.out.print("Enter the username of the customer you wish to transfer money to: ");
+                String username = sc.next();
+                User recipient = userDAO.findUserByUsername(username);
+                Account receiver = accountDAO.getAccountById(recipient.getUserId());
+                System.out.print("Enter the amount you wish to transfer: ");
+                double transfer = sc.nextDouble();
+                if(transfer <= account.getBalance() && transfer > 0) {
+                    //Post a pending transaction
+                } else {
+                    System.out.println("That was an invalid amount.");
+                }
                 break;
             case 4:
                 //accept transfer
@@ -161,9 +188,7 @@ public class BankService {
                 break;
             case 5:
                 System.out.println("You have chosen to exit");
-                customer = null;
-                account = null;
-                user = null;
+                resetService();
                 break;
             default:
                 System.out.println("Sorry that was not a valid option");

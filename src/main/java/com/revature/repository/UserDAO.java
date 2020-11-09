@@ -36,10 +36,10 @@ public class UserDAO implements UserRepository {
     public User findUserByUsername(String username) {
         Connection connection = connectionUtil.getConnection();
         try {
-            PreparedStatement prepStatement = connection.prepareStatement("select username from User where username = ?");
+            PreparedStatement prepStatement = connection.prepareStatement("select * from User where username = ?");
             prepStatement.setString(1, username);
             ResultSet results = prepStatement.executeQuery();
-            return new User(results.getString("username"));
+            return new User(results.getInt("user_id"), results.getString("username"));
         } catch (SQLException e) {
             System.out.println("Error occurred while trying find a user in the database");
             e.printStackTrace();

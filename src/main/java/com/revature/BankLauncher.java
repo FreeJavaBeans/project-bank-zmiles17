@@ -8,6 +8,7 @@ public class BankLauncher {
         try {
             BankService.dashboard();
         } catch(RuntimeException e) {
+            System.out.println("An unexpected error occurred");
             BankService.dashboard();
         }
     }
