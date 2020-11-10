@@ -8,6 +8,10 @@ public class Employee extends User {
 
     private static Queue<Account> accountsToVerify = new PriorityQueue<>();
 
+    public Employee(String username) {
+        super(username);
+    }
+
     public Employee(String username, String password) {
         super(username, password);
     }

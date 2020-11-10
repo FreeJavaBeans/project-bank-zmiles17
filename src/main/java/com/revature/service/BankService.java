@@ -13,7 +13,9 @@ import com.revature.repository.UserDAO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class BankService {
 
@@ -129,15 +131,74 @@ public class BankService {
     }
 
     private static void employeeMenu() {
-
+        System.out.println("1: Approve/deny accounts \n2: View accounts by customer \n3: View log of transactions \n4: Logout");
+        int option = 0;
+        try {
+            option = sc.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Incorrect input please type 1, 2, or 3.");
+            employeeMenu();
+        }
+        switch(option) {
+            case 1:
+                viewAccountsForVerification();
+                break;
+            case 2:
+                viewCustomerAccountInfo();
+                break;
+            case 3:
+                // view log of transactions
+                break;
+            case 4:
+                resetService();
+                break;
+            default:
+                employeeMenu();
+                break;
+        }
+        employeeMenu();
     }
 
-    private static void systemMenu() {
+    private static void viewCustomerAccountInfo() {
+        System.out.print("Enter the customer username for the account you wish to view: ");
+        String username = sc.next();
+        Account acc = accountDAO.getAccountByCustomerUsername(username);
+        if(acc != null) {
+            System.out.println("Balance: $" + acc.getBalance() + " Verification: " + acc.isVerified());
+        } else {
+            System.out.println("No information found for given username");
+        }
+    }
 
+    private static void viewAccountsForVerification() {
+        List<Account> accounts = accountDAO.getAllAccounts();
+        for(Account acc : accounts) {
+            System.out.println("Account ID: " + acc.getAccountId() + " Balance: $" + acc.getBalance() +
+                    " Verification Status: " + (acc.isVerified() ? "Verified" : "Unverified"));
+        }
+        List<Integer> accIds = accounts.stream().map(acc -> acc.getAccountId()).collect(Collectors.toList());
+        System.out.print("Enter the account ID for the account which you would like to approve/deny: ");
+        try {
+            int id = sc.nextInt();
+            if(accIds.contains(id)) {
+                System.out.print("Enter the verification status (true/false): ");
+                boolean verified = sc.nextBoolean();
+                accountDAO.updateVerification(id, verified);
+            }
+        } catch (InputMismatchException e) {
+            e.printStackTrace();
+        } finally {
+            employeeMenu();
+        }
     }
 
     private static void customerMenuSelection(int option) {
         Account account = accountDAO.getAccountById(customer.getAccountId());
+        if(!account.isVerified()) {
+            System.out.println("Your account has not yet been verified. You will not be able to view the account until an employee verifies it. " +
+                    "Taking you back to the dashboard.");
+            resetService();
+        }
         switch(option) {
             case 1:
                 account = accountDAO.getAccountById(customer.getAccountId());
