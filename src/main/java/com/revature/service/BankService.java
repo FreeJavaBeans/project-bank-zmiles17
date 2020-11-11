@@ -1,23 +1,18 @@
 package com.revature.service;
 
 import com.revature.exceptions.AccountCreationException;
-import com.revature.model.Account;
-import com.revature.model.Employee;
-import com.revature.model.User;
-import com.revature.model.Customer;
-import com.revature.repository.AccountDAO;
-import com.revature.repository.CustomerDAO;
-import com.revature.repository.EmployeeDAO;
-import com.revature.repository.UserDAO;
+import com.revature.model.*;
+import com.revature.repository.*;
+import org.apache.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BankService {
+
+    private final static Logger logger = Logger.getLogger(BankService.class);
 
     private static final Scanner sc = new Scanner(System.in);
 
@@ -35,11 +30,12 @@ public class BankService {
 
     private static final EmployeeDAO employeeDAO = new EmployeeDAO();
 
+    private static final TransactionDAO transactionDAO = new TransactionDAO();
+
     private static void resetService() {
         user = null;
         customer = null;
         employee = null;
-        dashboard();
     }
 
     private static void createUser() {
@@ -67,6 +63,7 @@ public class BankService {
     }
 
     public static void dashboard() {
+        resetService();
         System.out.print("Enter 1 if you are a registered user, 2 to register, or 3 if you are an employee: ");
         int val;
         try {
@@ -82,7 +79,7 @@ public class BankService {
             }
         } catch (InputMismatchException e) {
             sc.next();
-            System.out.println("That was an invalid input please try again.");
+            logger.info(e.getMessage());
         }
         chooseMenu();
     }
@@ -111,7 +108,7 @@ public class BankService {
             customerMenu();
         } else {
             System.out.println("That is not a valid option. Taking you back to login.");
-            resetService();
+            dashboard();
         }
     }
 
@@ -125,38 +122,48 @@ public class BankService {
             int option = sc.nextInt();
             customerMenuSelection(option);
         } catch (InputMismatchException e) {
-            System.out.println("Sorry that is not a valid option.");
+            logger.info(e.getMessage());
             customerMenu();
         }
     }
 
     private static void employeeMenu() {
         System.out.println("1: Approve/deny accounts \n2: View accounts by customer \n3: View log of transactions \n4: Logout");
-        int option = 0;
+        int option;
         try {
             option = sc.nextInt();
+            switch(option) {
+                case 1:
+                    viewAccountsForVerification();
+                    break;
+                case 2:
+                    viewCustomerAccountInfo();
+                    break;
+                case 3:
+                    viewTransactions();
+                    break;
+                case 4:
+                    dashboard();
+                    break;
+                default:
+                    employeeMenu();
+                    break;
+            }
         } catch (InputMismatchException e) {
-            System.out.println("Incorrect input please type 1, 2, or 3.");
-            employeeMenu();
-        }
-        switch(option) {
-            case 1:
-                viewAccountsForVerification();
-                break;
-            case 2:
-                viewCustomerAccountInfo();
-                break;
-            case 3:
-                // view log of transactions
-                break;
-            case 4:
-                resetService();
-                break;
-            default:
-                employeeMenu();
-                break;
+            logger.info(e.getMessage());
         }
         employeeMenu();
+    }
+
+    public static void viewTransactions() {
+        List<Transaction> transactions = transactionDAO.getAllTransactions();
+        if(transactions.size() != 0) {
+            for(Transaction t : transactions) {
+                System.out.println("Transaction ID: " + t.getTransactionId() + " Amount: $" + t.getAmount() + " Pending: " + t.isPending());
+            }
+        } else {
+            System.out.println("No transactions currently available.");
+        }
     }
 
     private static void viewCustomerAccountInfo() {
@@ -172,24 +179,30 @@ public class BankService {
 
     private static void viewAccountsForVerification() {
         List<Account> accounts = accountDAO.getAllAccounts();
-        for(Account acc : accounts) {
-            System.out.println("Account ID: " + acc.getAccountId() + " Balance: $" + acc.getBalance() +
-                    " Verification Status: " + (acc.isVerified() ? "Verified" : "Unverified"));
-        }
-        List<Integer> accIds = accounts.stream().map(acc -> acc.getAccountId()).collect(Collectors.toList());
-        System.out.print("Enter the account ID for the account which you would like to approve/deny: ");
-        try {
-            int id = sc.nextInt();
-            if(accIds.contains(id)) {
-                System.out.print("Enter the verification status (true/false): ");
-                boolean verified = sc.nextBoolean();
-                accountDAO.updateVerification(id, verified);
+        if(accounts.size() != 0) {
+            accounts.sort(Comparator.comparingInt(Account::getAccountId));
+            for(Account acc : accounts) {
+                System.out.println("Account ID: " + acc.getAccountId() + " Balance: $" + acc.getBalance() +
+                        " Verification Status: " + (acc.isVerified() ? "Verified" : "Unverified"));
             }
-        } catch (InputMismatchException e) {
-            e.printStackTrace();
-        } finally {
-            employeeMenu();
+            List<Integer> accIds = accounts.stream().map(Account::getAccountId).collect(Collectors.toList());
+            System.out.print("Enter the account ID for the account which you would like to approve/deny: ");
+            try {
+                int id = sc.nextInt();
+                if(accIds.contains(id)) {
+                    System.out.print("Enter the verification status (true/false): ");
+                    boolean verified = sc.nextBoolean();
+                    accountDAO.updateVerification(id, verified);
+                } else {
+                    System.out.println("That was not a valid account ID.");
+                }
+            } catch (InputMismatchException e) {
+                logger.info(e.getMessage());
+            }
+        } else {
+            System.out.println("There are not any accounts pending review.");
         }
+        employeeMenu();
     }
 
     private static void customerMenuSelection(int option) {
@@ -197,7 +210,7 @@ public class BankService {
         if(!account.isVerified()) {
             System.out.println("Your account has not yet been verified. You will not be able to view the account until an employee verifies it. " +
                     "Taking you back to the dashboard.");
-            resetService();
+            dashboard();
         }
         switch(option) {
             case 1:
@@ -213,7 +226,7 @@ public class BankService {
                             BigDecimal.valueOf(account.getBalance()).setScale(2, RoundingMode.HALF_UP));
                     amount = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP).doubleValue();
                     if(account.getBalance() - amount >= 0 && amount > 0) {
-                        account = accountDAO.updateBalance(account.getBalance() - amount, account.getAccountId());
+                        accountDAO.updateBalance(account.getBalance() - amount, account.getAccountId());
                     } else {
                         System.out.printf("Sorry that is an invalid amount to withdraw given your funds of $%s",
                                 BigDecimal.valueOf(account.getBalance()).setScale(2, RoundingMode.HALF_UP));
@@ -233,23 +246,23 @@ public class BankService {
             case 3:
                 System.out.print("Enter the username of the customer you wish to transfer money to: ");
                 String username = sc.next();
+                System.out.println(username);
                 User recipient = userDAO.findUserByUsername(username);
                 Account receiver = accountDAO.getAccountById(recipient.getUserId());
                 System.out.print("Enter the amount you wish to transfer: ");
                 double transfer = sc.nextDouble();
                 if(transfer <= account.getBalance() && transfer > 0) {
-                    //Post a pending transaction
+                    transactionDAO.createTransaction(account.getAccountId(), receiver.getAccountId(), transfer);
                 } else {
                     System.out.println("That was an invalid amount.");
                 }
                 break;
             case 4:
-                //accept transfer
-                System.out.println("Option 4");
+                listPendingTransactions(account.getAccountId());
                 break;
             case 5:
                 System.out.println("You have chosen to exit");
-                resetService();
+                dashboard();
                 break;
             default:
                 System.out.println("Sorry that was not a valid option");
@@ -258,17 +271,44 @@ public class BankService {
         customerMenu();
     }
 
+    private static void listPendingTransactions(int accountId) {
+        List<Transaction> pendingTransactions = transactionDAO.getTransactionsToAccountId(accountId);
+        if(pendingTransactions != null && pendingTransactions.size() != 0) {
+            pendingTransactions.sort(Comparator.comparingInt(Transaction::getTransactionId));
+            for(Transaction t : pendingTransactions) {
+                System.out.println("ID: " + pendingTransactions.indexOf(t) + " Amount: $" + t.getAmount());
+            }
+            System.out.print("Enter the ID of the transaction you wish to accept: ");
+            try {
+                int id = sc.nextInt();
+                Transaction transaction = pendingTransactions.get(id);
+                Account fromAcc = accountDAO.getAccountById(transaction.getFromAccountId());
+                Account toAcc = accountDAO.getAccountById(transaction.getToAccountId());
+                accountDAO.updateBalance(fromAcc.getBalance() - transaction.getAmount(), fromAcc.getAccountId());
+                accountDAO.updateBalance(toAcc.getBalance() + transaction.getAmount(), toAcc.getAccountId());
+                transactionDAO.updateTransactionStatus(transaction.getTransactionId());
+                System.out.println("Transaction completed successfully.");
+            } catch (Exception e) {
+                logger.info(e.getMessage());
+            }
+        } else {
+            System.out.println("You do not have any pending money transfers.");
+        }
+        customerMenu();
+    }
+
     private static int applyForAccount() throws AccountCreationException {
         System.out.println("Please enter a dollar amount for your account's beginning balance. " +
-                "Must be greater than 100.00 and less than 10 million. Ex: 5761.28");
+                "Must be greater than or equal to 100.00 and less than 10 million. Ex: 5761.28");
         Account account = null;
         try {
             BigDecimal bd = BigDecimal.valueOf(sc.nextDouble()).setScale(2, RoundingMode.HALF_UP);
             double beginningBalance = bd.doubleValue();
-            System.out.println(beginningBalance);
             account = accountDAO.createAccount(beginningBalance);
+            System.out.println("Account created successfully with a starting balance of $" +
+                    BigDecimal.valueOf(account.getBalance()).setScale(2, RoundingMode.HALF_UP));
         } catch (InputMismatchException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         assert account != null;
         return account.getAccountId();

@@ -4,6 +4,7 @@ import com.revature.exceptions.CustomerCreationException;
 import com.revature.model.Customer;
 import com.revature.model.User;
 import com.revature.util.ConnectionUtil;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,6 +14,8 @@ import java.sql.SQLException;
 public class CustomerDAO implements CustomerRepository {
 
     ConnectionUtil util = ConnectionUtil.getSingleton();
+
+    private final Logger logger = Logger.getLogger(CustomerDAO.class);
 
     @Override
     public Customer createCustomer(User user, int accountId) {
@@ -26,7 +29,7 @@ public class CustomerDAO implements CustomerRepository {
                 return new Customer(user.getUsername(), results.getInt("account_id"));
             }
         } catch(SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new CustomerCreationException("Customer was not created successfully");
     }
@@ -42,7 +45,7 @@ public class CustomerDAO implements CustomerRepository {
                 return new Customer(user.getUserId(), user.getUsername(), results.getInt("account_id"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new RuntimeException("Error finding customer by user id.");
     }

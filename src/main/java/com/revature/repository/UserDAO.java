@@ -4,6 +4,7 @@ import com.revature.exceptions.UserNotCreatedException;
 import com.revature.exceptions.UserNotFoundException;
 import com.revature.model.User;
 import com.revature.util.ConnectionUtil;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +12,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UserDAO implements UserRepository {
+
+    private final Logger logger = Logger.getLogger(UserDAO.class);
 
     private ConnectionUtil connectionUtil = ConnectionUtil.getSingleton();
 
@@ -26,8 +29,7 @@ public class UserDAO implements UserRepository {
                 return new User(results.getInt("user_id"), results.getString("username"));
             }
         } catch(SQLException e) {
-            System.out.println("Error occurred while trying to create a new user");
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new UserNotCreatedException("User was not created successfully");
     }
@@ -36,13 +38,14 @@ public class UserDAO implements UserRepository {
     public User findUserByUsername(String username) {
         Connection connection = connectionUtil.getConnection();
         try {
-            PreparedStatement prepStatement = connection.prepareStatement("select * from User where username = ?");
+            PreparedStatement prepStatement = connection.prepareStatement("select * from \"user\" where \"user\".username = ?;");
             prepStatement.setString(1, username);
             ResultSet results = prepStatement.executeQuery();
-            return new User(results.getInt("user_id"), results.getString("username"));
+            if(results.next()) {
+                return new User(results.getInt("user_id"), results.getString("username"));
+            }
         } catch (SQLException e) {
-            System.out.println("Error occurred while trying find a user in the database");
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new UserNotFoundException("User was not found");
     }
@@ -59,7 +62,7 @@ public class UserDAO implements UserRepository {
                 return new User(results.getInt("user_id"), results.getString("username"));
             }
         } catch(SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new RuntimeException("Sorry that username and/or password is incorrect.");
     }

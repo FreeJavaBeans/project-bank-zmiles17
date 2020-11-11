@@ -3,6 +3,7 @@ package com.revature.repository;
 import com.revature.exceptions.AccountCreationException;
 import com.revature.model.Account;
 import com.revature.util.ConnectionUtil;
+import org.apache.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,6 +14,8 @@ import java.util.List;
 public class AccountDAO implements AccountRepository {
 
     private ConnectionUtil connectionUtil = ConnectionUtil.getSingleton();
+
+    private final Logger logger = Logger.getLogger(AccountDAO.class);
 
     @Override
     public Account createAccount(double balance) {
@@ -25,9 +28,10 @@ public class AccountDAO implements AccountRepository {
                 return new Account(results.getInt("account_id"), results.getDouble("balance"), results.getBoolean("is_verified"));
             }
         } catch(SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
-        throw new AccountCreationException("Your account was not created successfully. Please review the balance amount you have provided.");
+        throw new AccountCreationException("Your account was not created successfully. " +
+                "Balance must be greater than or equal to $100.00 and less than or equal to 10 million.");
     }
 
     @Override
@@ -41,7 +45,7 @@ public class AccountDAO implements AccountRepository {
                 return new Account(results.getInt("account_id"), results.getDouble("balance"), results.getBoolean("is_verified"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new RuntimeException("Error occurred while retrieving your account.");
     }
@@ -59,7 +63,7 @@ public class AccountDAO implements AccountRepository {
                 return new Account(accountId, bd.doubleValue() , results.getBoolean("is_verified"));
             }
         } catch(SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
         throw new RuntimeException("Error updating balance. Minimum or maximum balance breached.");
     }
@@ -77,10 +81,9 @@ public class AccountDAO implements AccountRepository {
             }
             return accounts;
         } catch(SQLException e) {
-            e.printStackTrace();
-            System.out.println("Error while retrieving accounts from database");
+            logger.info(e.getMessage());
         }
-        return null;
+        throw new RuntimeException("Error retrieving all accounts.");
     }
 
     @Override
@@ -92,7 +95,7 @@ public class AccountDAO implements AccountRepository {
             preparedStatement.setInt(2, accId);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
     }
 
@@ -100,9 +103,9 @@ public class AccountDAO implements AccountRepository {
     public Account getAccountByCustomerUsername(String username) {
         Connection conn = connectionUtil.getConnection();
         try {
-            PreparedStatement statement = conn.prepareStatement("select * from account where account_id = \n" +
-                    "\t(select account_id from customer where user_id = \n" +
-                    "\t\t(select user_id from \"user\" where \"user\".username = ?));");
+            PreparedStatement statement = conn.prepareStatement("select * from account where account_id = " +
+                    "(select account_id from customer where user_id = " +
+                    "(select user_id from \"user\" where \"user\".username = ?));");
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
@@ -111,8 +114,8 @@ public class AccountDAO implements AccountRepository {
                         resultSet.getBoolean("is_verified"));
             }
         }catch (SQLException e) {
-            e.printStackTrace();
+            logger.info(e.getMessage());
         }
-        return null;
+        throw new RuntimeException("Error retrieving account by customer username.");
     }
 }
